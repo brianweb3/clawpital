@@ -3,7 +3,7 @@
 <div align="center">
   <img src="clawpital.png" alt="CLAWPITAL Logo" width="200"/>
   
-  [![Twitter](https://img.shields.io/twitter/follow/clawpital?style=social)](https://x.com/i/communities/2019091644457365942)
+  [![Twitter](https://img.shields.io/twitter/follow/harryhrndz?style=social)](https://x.com/harryhrndz)
 </div>
 
 ## About
@@ -30,7 +30,7 @@ CLAWPITAL is an advanced AI-powered trading DApp featuring real-time market anal
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/clawpital.git
+   git clone https://github.com/brianweb3/clawpital.git
    cd clawpital
    ```
 
@@ -58,7 +58,7 @@ clawpital/
 
 ## Social Media
 
-- **Twitter/X Community**: [Join our community](https://x.com/i/communities/2019091644457365942)
+- **Twitter/X (разработчик)**: [@harryhrndz](https://x.com/harryhrndz)
 
 ## License
 
