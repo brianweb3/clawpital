@@ -746,6 +746,32 @@ var weeklyPnl = 0;
 var totalTrades = 0;
 var winningTrades = 0;
 
+function getApiBase() { return (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : ''; }
+function loadTradesFromServer() {
+    var base = getApiBase();
+    if (!base) return Promise.resolve(false);
+    return fetch(base + '/api/trades').then(function(r) { return r.ok ? r.json() : null; }).then(function(data) {
+        if (data && Array.isArray(data.trades) && data.trades.length > 0) {
+            tradeHistory = data.trades.slice(0, 50);
+            if (data.info) {
+                totalTrades = data.info.totalTrades || 0;
+                winningTrades = data.info.winningTrades || 0;
+            }
+            return true;
+        }
+        return false;
+    }).catch(function() { return false; });
+}
+function saveTradeToServer(trade) {
+    var base = getApiBase();
+    if (!base || !trade) return;
+    fetch(base + '/api/trades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trade)
+    }).catch(function() {});
+}
+
 // Capital allocation tracking - starting with $1000
 var capitalAllocation = {
     staking: { amount: 350, percent: 35, growth: 8.5 },
@@ -922,6 +948,8 @@ function simulateTrade() {
     
     totalTrades++;
     if (isPositive) winningTrades++;
+    
+    saveTradeToServer(trade);
     
     const pnlValue = parseFloat(pnlPercent);
     dailyPnl += pnlValue;
@@ -1433,18 +1461,18 @@ function startDAppBehavior() {
     // Start Polymarket updates
     startPolymarketUpdates();
     
-    // Initialize with some positions and trades
+    // Initialize with some positions and trades (load last 50 from Vercel if available)
     activePositions = [];
     tradeHistory = [];
-    for (var i = 0; i < 3; i++) {
-        simulateTrade();
-    }
-    for (var i = 0; i < 2; i++) {
-        updatePositions();
-    }
-    renderPositions();
-    renderHistory();
-    updateMetrics();
+    loadTradesFromServer().then(function(loaded) {
+        if (!loaded) {
+            for (var i = 0; i < 3; i++) { simulateTrade(); }
+        }
+        for (var i = 0; i < 2; i++) { updatePositions(); }
+        renderPositions();
+        renderHistory();
+        updateMetrics();
+    });
     
     // Update capital allocation periodically
     dappIntervals.push(setInterval(function() {
@@ -1478,7 +1506,7 @@ function startDAppBehavior() {
         }, 1500 + Math.random() * 2000);
     }, 6000));
     
-    // Continuous trade simulation
+    // Continuous trade simulation (each trade persisted to Vercel in simulateTrade)
     dappIntervals.push(setInterval(function() {
         const trade = simulateTrade();
         renderHistory();

@@ -52,9 +52,15 @@ clawpital/
 ├── index.html          # Main HTML structure
 ├── style.css           # Styles and Windows 95 UI theme
 ├── script.js           # Application logic and API integration
+├── api/
+│   └── trades.js       # API: last 50 trades (Vercel Blob)
 ├── clawpital.png       # Logo
 └── README.md           # This file
 ```
+
+## Persisting trades on Vercel
+
+The last **50 trades** and summary info are stored in **Vercel Blob**. After deploy: **Storage** → **Blob** → create store and link to the project. Redeploy. Without Blob, the app still runs; history just won’t persist across sessions.
 
 ## Social Media
 
