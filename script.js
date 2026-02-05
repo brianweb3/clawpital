@@ -755,6 +755,32 @@ var totalTrades = 0;
 var winningTrades = 0;
 
 function getApiBase() { return (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : ''; }
+function loadBalanceFromServer() {
+    var base = getApiBase();
+    if (!base) return Promise.resolve(false);
+    return fetch(base + '/api/balance').then(function(r) { return r.ok ? r.json() : null; }).then(function(data) {
+        if (data && typeof data.balance === 'number') {
+            currentBalance = data.balance;
+            if (typeof data.initialBalance === 'number' && data.initialBalance > 0) {
+                initialBalance = data.initialBalance;
+            }
+            if (balanceValueEl) balanceValueEl.textContent = formatBalance(currentBalance);
+            updateMetrics();
+            updateWalletBalance();
+            return true;
+        }
+        return false;
+    }).catch(function() { return false; });
+}
+function saveBalanceToServer() {
+    var base = getApiBase();
+    if (!base || typeof currentBalance !== 'number') return;
+    fetch(base + '/api/balance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance: currentBalance, initialBalance: initialBalance })
+    }).catch(function() {});
+}
 function loadTradesFromServer() {
     var base = getApiBase();
     if (!base) return Promise.resolve(false);
@@ -2244,6 +2270,56 @@ if (cuadroL) {
     });
 }
 
+function typeAIExplanation(text, element, speed) {
+    speed = speed || 20;
+    let index = 0;
+    element.innerHTML = '';
+    let currentText = '';
+    
+    function type() {
+        if (index < text.length) {
+            currentText += text[index];
+            element.innerHTML = '<div class="narrative-ai-typing">' + currentText + '<span class="narrative-ai-cursor">|</span></div>';
+            index++;
+            setTimeout(type, speed);
+        } else {
+            element.innerHTML = '<div class="narrative-ai-typing">' + currentText + '</div>';
+        }
+    }
+    type();
+}
+
+function explainNarrative(narrativeData) {
+    const aiContent = document.getElementById('narrativeAIContent');
+    if (!aiContent || !narrativeData) return;
+    
+    // Generate AI explanation text
+    const explanation = 'Analyzing narrative: ' + narrativeData.name + '\n\n' +
+        'Heat Score: ' + narrativeData.heat + '/100\n' +
+        'Status: ' + narrativeData.status.toUpperCase() + '\n' +
+        '24h Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
+        'Model Assessment:\n' +
+        narrativeData.reasoning + '\n\n' +
+        'Key Factors:\n' +
+        narrativeData.factors + '\n\n' +
+        'Detailed Analysis:\n' +
+        narrativeData.fullAnalysis;
+    
+    // Clear and start typing
+    aiContent.innerHTML = '';
+    typeAIExplanation(explanation, aiContent, 15);
+    
+    // Highlight selected card
+    const cards = document.querySelectorAll('.narrative-card');
+    cards.forEach(function(card) {
+        card.classList.remove('narrative-card-selected');
+        const nameEl = card.querySelector('.narrative-name');
+        if (nameEl && nameEl.textContent.trim() === narrativeData.name) {
+            card.classList.add('narrative-card-selected');
+        }
+    });
+}
+
 // Add click handlers for narrative cards in painting left
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -2271,7 +2347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     if (narrativeData) {
-                        showNarrativeDetails(narrativeData);
+                        explainNarrative(narrativeData);
                     }
                 });
             });
@@ -2739,6 +2815,14 @@ function updateBalance() {
     updateMetrics(); // Update ROI and PNL when balance changes
     updateWalletBalance(); // Update wallet display
     
+    // Save balance to server every 5 seconds
+    if (!updateBalance.saveTimer) {
+        updateBalance.saveTimer = setTimeout(function() {
+            saveBalanceToServer();
+            updateBalance.saveTimer = null;
+        }, 5000);
+    }
+    
     setTimeout(function() {
         if (balanceValueEl) balanceValueEl.classList.remove('updating');
     }, 400);
@@ -2761,19 +2845,24 @@ function updateWalletBalance() {
 
 // Initialize when DOM is ready
 function initializeBalance() {
-    // Sync balance with capital allocation
-    totalCapital = Object.values(capitalAllocation).reduce((sum, item) => sum + item.amount, 0);
-    currentBalance = totalCapital;
-    initialBalance = totalCapital;
-    
-    if (balanceValueEl) {
-        balanceValueEl.textContent = formatBalance(currentBalance);
-        updateMetrics(); // Initial update
-        setInterval(updateBalance, 1000);
-    }
-    
-    // Initialize wallet display
-    updateWalletBalance();
+    // Try to load balance from server first
+    loadBalanceFromServer().then(function(loaded) {
+        if (!loaded) {
+            // Sync balance with capital allocation if not loaded from server
+            totalCapital = Object.values(capitalAllocation).reduce((sum, item) => sum + item.amount, 0);
+            currentBalance = totalCapital;
+            initialBalance = totalCapital;
+        }
+        
+        if (balanceValueEl) {
+            balanceValueEl.textContent = formatBalance(currentBalance);
+            updateMetrics(); // Initial update
+            setInterval(updateBalance, 1000);
+        }
+        
+        // Initialize wallet display
+        updateWalletBalance();
+    });
 }
 
 if (document.readyState === 'loading') {

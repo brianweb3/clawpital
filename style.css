@@ -3659,7 +3659,7 @@ body.modal-open .balance-counter {
 .balance-counter {
     position: fixed;
     right: 50px;
-    top: 40%;
+    top: 30%;
     transform: translateY(-50%);
     z-index: 9999;
     background: linear-gradient(180deg, #e03636, #b31919);
@@ -3906,9 +3906,9 @@ body.modal-open .balance-counter {
     transform: scale(1);
 }
 .painting-panel {
-    width: 58vw;
-    max-width: 520px;
-    max-height: 70vh;
+    width: 85vw;
+    max-width: 1200px;
+    max-height: 85vh;
     background: #f5f5f5;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -3931,6 +3931,60 @@ body.modal-open .balance-counter {
     font-size: 1.1rem;
     color: #374151;
     border-bottom: 1px solid #e0e0e0;
+}
+.painting-panel-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+}
+.painting-panel-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 2px solid #e0e0e0;
+}
+.painting-panel-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+    overflow: hidden;
+}
+.narrative-ai-header {
+    padding: 12px 16px;
+    background: #e8e8e8;
+    border-bottom: 2px solid #d0d0d0;
+    font-weight: 600;
+    font-size: 13px;
+    color: #374151;
+}
+.narrative-ai-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #1f2937;
+}
+.narrative-ai-placeholder {
+    color: #9ca3af;
+    font-style: italic;
+    text-align: center;
+    margin-top: 40px;
+}
+.narrative-ai-typing {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.narrative-ai-cursor {
+    display: inline-block;
+    animation: blink 1s infinite;
+    font-weight: bold;
+    color: #5189fb;
+    margin-left: 2px;
 }
 .painting-panel-scroll {
     overflow-y: auto;
@@ -3969,6 +4023,12 @@ body.modal-open .balance-counter {
     border-color: #c0c0c0;
     box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 rgba(0,0,0,0.06);
     transform: translateY(-1px);
+}
+.narrative-card-selected {
+    background: #e8f4fd !important;
+    border-left-color: #5189fb !important;
+    border-color: #5189fb !important;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 rgba(81, 137, 251, 0.2), 0 0 0 2px rgba(81, 137, 251, 0.1) !important;
 }
 @keyframes narrativeCardIn {
     from {

@@ -657,8 +657,10 @@
               <button type="button" class="win-btn win-btn-close painting-close" data-close="narratives" aria-label="Close"><span class="win-icon-x"></span></button>
             </div>
           </div>
-          <div class="win-content painting-panel-scroll-wrap">
-          <div class="painting-panel-scroll" id="narrativesList">
+          <div class="win-content painting-panel-content">
+            <div class="painting-panel-left">
+              <div class="painting-panel-scroll-wrap">
+                <div class="painting-panel-scroll" id="narrativesList">
             <article class="narrative-card" data-heat="72">
               <div class="narrative-card-header">
                 <span class="narrative-name">Pump.fun momentum</span>
@@ -717,7 +719,17 @@
                 </span>
               </div>
             </article>
-          </div>
+                </div>
+              </div>
+            </div>
+            <div class="painting-panel-right" id="narrativeAIExplanation">
+              <div class="narrative-ai-header">
+                <span class="narrative-ai-title">AI Analysis</span>
+              </div>
+              <div class="narrative-ai-content" id="narrativeAIContent">
+                <p class="narrative-ai-placeholder">Click on a narrative to see AI explanation...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
