@@ -2192,8 +2192,10 @@ function openPaintingLeft() {
     transitionCamera(PAINTING_LEFT, 1200);
     setTimeout(function() {
         if (narrativesOverlay) narrativesOverlay.classList.add('is-visible');
-        // Attach handlers after overlay is visible
+        // Attach handlers after overlay is visible - try multiple times
         setTimeout(attachNarrativeHandlers, 100);
+        setTimeout(attachNarrativeHandlers, 500);
+        setTimeout(attachNarrativeHandlers, 1000);
     }, 1200);
 }
 
@@ -2212,6 +2214,15 @@ function openPaintingRight() {
 }
 
 // Narrative data for painting left narratives
+// Mapping from numeric IDs to narrative keys
+const narrativeIdMap = {
+    1: 'restaking-yields',
+    2: 'pumpfun-momentum',
+    3: 'base-l2-adoption',
+    4: 'ai-agent-tokens',
+    5: 'defi-yields-rotation'
+};
+
 const paintingNarratives = {
     'pumpfun-momentum': {
         id: 'pumpfun-momentum',
@@ -2383,38 +2394,38 @@ function explainNarrative(narrativeData) {
     });
     
     // Clear content and show loading
-    aiContent.innerHTML = '<div class="narrative-ai-typing">Анализирую нарратив: ' + narrativeData.name + '...<span class="narrative-ai-cursor">|</span></div>';
+    aiContent.innerHTML = '<div class="narrative-ai-typing">Analyzing narrative: ' + narrativeData.name + '...<span class="narrative-ai-cursor">|</span></div>';
     console.log('Loading message displayed, calling API...');
     
     // Use server-side proxy to avoid CORS issues
-    const prompt = 'Ты - эксперт по аналитике крипторынка. Проанализируй этот нарратив детально:\n\n' +
-        'Название: ' + narrativeData.name + '\n' +
+    const prompt = 'You are a crypto market analytics expert. Analyze this narrative in detail:\n\n' +
+        'Name: ' + narrativeData.name + '\n' +
         'Heat Score: ' + narrativeData.heat + '/100\n' +
-        'Статус: ' + narrativeData.status + '\n' +
-        'Изменение за 24ч: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n' +
-        'Краткое описание: ' + narrativeData.summary + '\n\n' +
-        'Напиши детальный анализ на русском языке, который включает:\n\n' +
-        '1. ПОЧЕМУ ЭТОТ НАРРАТИВ АКТУАЛЕН:\n' +
-        '   - Текущая ситуация на рынке\n' +
-        '   - Что делает его важным сейчас\n' +
-        '   - Связь с макротрендами\n\n' +
-        '2. ПОЧЕМУ СТОИТ ВЛОЖИТЬСЯ:\n' +
-        '   - Конкретные цифры и метрики (TVL, объемы, рост, проценты)\n' +
-        '   - Примеры успешных проектов/токенов в этом нарративе\n' +
-        '   - Кейсы инвесторов/проектов\n' +
-        '   - Потенциал роста с конкретными цифрами\n\n' +
-        '3. ДАННЫЕ И МЕТРИКИ:\n' +
-        '   - Приведи конкретные цифры (TVL в $, объемы торговли, количество проектов, рост в %)\n' +
-        '   - Создай простую текстовую диаграмму роста (например: "TVL: $2B → $8B (+300%)")\n' +
-        '   - Покажи динамику за последние периоды\n\n' +
-        '4. ПРИМЕРЫ И КЕЙСЫ:\n' +
-        '   - Конкретные проекты/токены в этом нарративе\n' +
-        '   - Примеры успешных инвестиций\n' +
-        '   - Реальные кейсы с цифрами\n\n' +
-        '5. РИСКИ И ЧТО СЛЕДИТЬ:\n' +
-        '   - Основные риски\n' +
-        '   - Ключевые метрики для мониторинга\n\n' +
-        'Используй форматирование с заголовками, списками, выделением важных цифр. Пиши как профессиональный криптоаналитик, объясняющий своему клиенту инвестиционную возможность.';
+        'Status: ' + narrativeData.status + '\n' +
+        '24h Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n' +
+        'Summary: ' + narrativeData.summary + '\n\n' +
+        'Provide a detailed analysis in English that includes:\n\n' +
+        '1. WHY THIS NARRATIVE IS RELEVANT:\n' +
+        '   - Current market situation\n' +
+        '   - What makes it important now\n' +
+        '   - Connection to macro trends\n\n' +
+        '2. WHY IT\'S WORTH INVESTING:\n' +
+        '   - Specific numbers and metrics (TVL, volumes, growth, percentages)\n' +
+        '   - Examples of successful projects/tokens in this narrative\n' +
+        '   - Investor/project case studies\n' +
+        '   - Growth potential with specific numbers\n\n' +
+        '3. DATA AND METRICS:\n' +
+        '   - Provide specific numbers (TVL in $, trading volumes, number of projects, growth in %)\n' +
+        '   - Create a simple text growth diagram (e.g., "TVL: $2B → $8B (+300%)")\n' +
+        '   - Show dynamics over recent periods\n\n' +
+        '4. EXAMPLES AND CASE STUDIES:\n' +
+        '   - Specific projects/tokens in this narrative\n' +
+        '   - Examples of successful investments\n' +
+        '   - Real cases with numbers\n\n' +
+        '5. RISKS AND WHAT TO WATCH:\n' +
+        '   - Main risks\n' +
+        '   - Key metrics to monitor\n\n' +
+        'Use formatting with headers, lists, highlighting important numbers. Write as a professional crypto analyst explaining an investment opportunity to your client.';
     
     const base = getApiBase();
     console.log('API base URL:', base);
@@ -2440,9 +2451,9 @@ function explainNarrative(narrativeData) {
             const aiText = data.text || '';
             if (aiText) {
                 console.log('AI text length:', aiText.length);
-                const fullExplanation = 'НАРРАТИВ: ' + narrativeData.name + '\n' +
-                    'Heat: ' + narrativeData.heat + '/100 | Статус: ' + narrativeData.status.toUpperCase() + 
-                    ' | Изменение: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
+                const fullExplanation = 'NARRATIVE: ' + narrativeData.name + '\n' +
+                    'Heat: ' + narrativeData.heat + '/100 | Status: ' + narrativeData.status.toUpperCase() + 
+                    ' | Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
                     aiText;
                 aiContent.innerHTML = '';
                 typeAIExplanation(fullExplanation, aiContent, 12);
@@ -2462,20 +2473,20 @@ function explainNarrative(narrativeData) {
 }
 
 function fallbackExplanation(narrativeData, aiContent, errorMsg) {
-    const explanation = 'НАРРАТИВ: ' + narrativeData.name + '\n' +
-        'Heat: ' + narrativeData.heat + '/100 | Статус: ' + narrativeData.status.toUpperCase() + 
-        ' | Изменение: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
-        '1. ПОЧЕМУ ЭТОТ НАРРАТИВ АКТУАЛЕН:\n' +
+    const explanation = 'NARRATIVE: ' + narrativeData.name + '\n' +
+        'Heat: ' + narrativeData.heat + '/100 | Status: ' + narrativeData.status.toUpperCase() + 
+        ' | Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
+        '1. WHY THIS NARRATIVE IS RELEVANT:\n' +
         narrativeData.reasoning + '\n\n' +
-        '2. ПОЧЕМУ СТОИТ ВЛОЖИТЬСЯ:\n' +
+        '2. WHY IT\'S WORTH INVESTING:\n' +
         '- ' + narrativeData.factors + '\n\n' +
-        '3. ДЕТАЛЬНЫЙ АНАЛИЗ:\n' +
+        '3. DETAILED ANALYSIS:\n' +
         narrativeData.fullAnalysis;
     
     if (errorMsg) {
-        explanation += '\n\n[Примечание: ' + errorMsg + '. Проверьте переменные окружения Vercel для CLAUDE_API_KEY]';
+        explanation += '\n\n[Note: ' + errorMsg + '. Check Vercel environment variables for CLAUDE_API_KEY]';
     } else {
-        explanation += '\n\n[Примечание: Используется резервное объяснение. Установите CLAUDE_API_KEY в переменных окружения Vercel для AI-генерируемых объяснений]';
+        explanation += '\n\n[Note: Using fallback explanation. Set CLAUDE_API_KEY in Vercel environment variables for AI-generated explanations]';
     }
     
     aiContent.innerHTML = '';
@@ -2484,46 +2495,78 @@ function fallbackExplanation(narrativeData, aiContent, errorMsg) {
 
 // Add click handlers for narrative cards in painting left
 function attachNarrativeHandlers() {
-    const narrativesList = document.getElementById('narrativesList');
+    // Try multiple selectors to find the narratives list
+    let narrativesList = document.getElementById('narrativesList');
+    if (!narrativesList) {
+        narrativesList = document.querySelector('.painting-panel-scroll');
+    }
+    if (!narrativesList) {
+        narrativesList = document.querySelector('#narrativesOverlay [data-narrative-id]')?.parentElement;
+    }
+    
     if (narrativesList) {
-        const cards = narrativesList.querySelectorAll('.narrative-card');
-        console.log('Found', cards.length, 'narrative cards');
+        // Look for both narrative-card-expandable and narrative-card classes
+        const cards = narrativesList.querySelectorAll('.narrative-card-expandable, .narrative-card, [data-narrative-id]');
+        console.log('Found', cards.length, 'narrative cards in container:', narrativesList);
         cards.forEach(function(card) {
             card.style.cursor = 'pointer';
-            // Remove existing listeners to avoid duplicates
-            const newCard = card.cloneNode(true);
-            card.parentNode.replaceChild(newCard, card);
-            
-            newCard.addEventListener('click', function(e) {
-                e.stopPropagation();
-                console.log('Narrative card clicked');
-                const heat = parseInt(newCard.getAttribute('data-heat')) || 0;
-                const nameEl = newCard.querySelector('.narrative-name');
-                const name = nameEl ? nameEl.textContent.trim() : '';
-                console.log('Narrative name:', name);
-                
-                // Find matching narrative data
-                let narrativeData = null;
-                if (name.includes('Pump.fun') || name.includes('pumpfun')) {
-                    narrativeData = paintingNarratives['pumpfun-momentum'];
-                } else if (name.includes('Restaking') || name.includes('restaking')) {
-                    narrativeData = paintingNarratives['restaking-yields'];
-                } else if (name.includes('Base') || name.includes('base')) {
-                    narrativeData = paintingNarratives['base-l2-adoption'];
-                } else if (name.includes('AI agent') || name.includes('ai-agent')) {
-                    narrativeData = paintingNarratives['ai-agent-tokens'];
-                }
-                
-                if (narrativeData) {
-                    console.log('Found narrative data, calling explainNarrative');
-                    explainNarrative(narrativeData);
-                } else {
-                    console.warn('No narrative data found for:', name);
-                }
-            });
+            // Don't clone - just add listener directly
+            if (!card.hasAttribute('data-handler-attached')) {
+                card.setAttribute('data-handler-attached', 'true');
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking expand button
+                    if (e.target.classList.contains('narrative-expand-btn') || e.target.closest('.narrative-expand-btn')) {
+                        return;
+                    }
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('Narrative card clicked directly');
+                    const narrativeId = card.getAttribute('data-narrative-id');
+                    const nameEl = card.querySelector('h4') || card.querySelector('.narrative-name') || card.querySelector('.narrative-card-title h4');
+                    const name = nameEl ? nameEl.textContent.trim() : '';
+                    console.log('Narrative ID:', narrativeId, 'Name:', name);
+                    
+                    // Find matching narrative data
+                    let narrativeData = null;
+                    if (narrativeId) {
+                        // Try numeric ID mapping first
+                        const numericId = parseInt(narrativeId);
+                        if (numericId && narrativeIdMap[numericId]) {
+                            const narrativeKey = narrativeIdMap[numericId];
+                            narrativeData = paintingNarratives[narrativeKey];
+                        } else if (paintingNarratives[narrativeId]) {
+                            // Try direct string key
+                            narrativeData = paintingNarratives[narrativeId];
+                        }
+                    }
+                    // Fallback to name matching
+                    if (!narrativeData) {
+                        const nameLower = name.toLowerCase();
+                        if (nameLower.includes('pump')) {
+                            narrativeData = paintingNarratives['pumpfun-momentum'];
+                        } else if (nameLower.includes('restaking') || nameLower.includes('restak')) {
+                            narrativeData = paintingNarratives['restaking-yields'];
+                        } else if (nameLower.includes('base')) {
+                            narrativeData = paintingNarratives['base-l2-adoption'];
+                        } else if (nameLower.includes('ai') && nameLower.includes('agent')) {
+                            narrativeData = paintingNarratives['ai-agent-tokens'];
+                        }
+                    }
+                    
+                    if (narrativeData) {
+                        console.log('Found narrative data:', narrativeData.name);
+                        explainNarrative(narrativeData);
+                    } else {
+                        console.warn('No narrative data found for ID:', narrativeId, 'Name:', name);
+                    }
+                });
+            }
         });
     } else {
-        console.warn('narrativesList not found');
+        console.warn('narrativesList not found, trying alternative selectors...');
+        // Fallback: try to find cards anywhere
+        const allCards = document.querySelectorAll('.narrative-card-expandable, .narrative-card, [data-narrative-id]');
+        console.log('Found', allCards.length, 'narrative cards total in document');
     }
 }
 
@@ -2531,53 +2574,86 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(attachNarrativeHandlers, 500);
 });
 
-// Event delegation for narrative cards - works even if cards are added dynamically
+// Event delegation for narrative cards - use capture phase to catch events early
 document.addEventListener('click', function(e) {
-    // Check if clicked element or its parent is a narrative card
-    let card = e.target.closest('.narrative-card');
+    // Only process if narratives overlay is visible
+    const narrativesOverlay = document.getElementById('narrativesOverlay');
+    if (!narrativesOverlay || !narrativesOverlay.classList.contains('is-visible')) {
+        return;
+    }
+    
+    // Don't trigger if clicking expand button
+    if (e.target.classList.contains('narrative-expand-btn') || e.target.closest('.narrative-expand-btn')) {
+        return;
+    }
+    
+    // Check if clicked element or its parent is a narrative card (try multiple selectors)
+    let card = e.target.closest('.narrative-card-expandable') || 
+               e.target.closest('.narrative-card') ||
+               e.target.closest('[data-narrative-id]');
+    
+    // Also check if we clicked on child elements
     if (!card) {
-        // Also check if clicked on child elements
-        if (e.target.closest('.narrative-card-header') || 
-            e.target.closest('.narrative-name') || 
-            e.target.closest('.narrative-desc') ||
-            e.target.closest('.narrative-meta')) {
-            card = e.target.closest('.narrative-card');
+        const parent = e.target.parentElement;
+        if (parent && (parent.classList.contains('narrative-card-expandable') || parent.classList.contains('narrative-card') || parent.hasAttribute('data-narrative-id'))) {
+            card = parent;
+        } else if (parent && parent.parentElement) {
+            const grandParent = parent.parentElement;
+            if (grandParent.classList.contains('narrative-card-expandable') || grandParent.classList.contains('narrative-card') || grandParent.hasAttribute('data-narrative-id')) {
+                card = grandParent;
+            }
         }
     }
     
     if (card) {
         e.stopPropagation();
         e.preventDefault();
-        console.log('Narrative card clicked, card:', card);
-        const nameEl = card.querySelector('.narrative-name');
+        console.log('Narrative card clicked via delegation, card:', card);
+        const narrativeId = card.getAttribute('data-narrative-id');
+        const nameEl = card.querySelector('h4') || card.querySelector('.narrative-name') || card.querySelector('.narrative-card-title h4');
         if (nameEl) {
             const name = nameEl.textContent.trim();
-            console.log('Narrative name:', name);
+            console.log('Narrative ID:', narrativeId, 'Name:', name);
             let narrativeData = null;
             
-            // More flexible matching
-            const nameLower = name.toLowerCase();
-            if (nameLower.includes('pump') || nameLower.includes('pump.fun')) {
-                narrativeData = paintingNarratives['pumpfun-momentum'];
-            } else if (nameLower.includes('restaking') || nameLower.includes('restak')) {
-                narrativeData = paintingNarratives['restaking-yields'];
-            } else if (nameLower.includes('base') && nameLower.includes('l2')) {
-                narrativeData = paintingNarratives['base-l2-adoption'];
-            } else if (nameLower.includes('ai agent') || (nameLower.includes('ai') && nameLower.includes('agent'))) {
-                narrativeData = paintingNarratives['ai-agent-tokens'];
+            // Try to find by ID first
+            if (narrativeId) {
+                // Try numeric ID mapping first
+                const numericId = parseInt(narrativeId);
+                if (numericId && narrativeIdMap[numericId]) {
+                    const narrativeKey = narrativeIdMap[numericId];
+                    narrativeData = paintingNarratives[narrativeKey];
+                } else if (paintingNarratives[narrativeId]) {
+                    // Try direct string key
+                    narrativeData = paintingNarratives[narrativeId];
+                }
+            }
+            // Fallback to name matching
+            if (!narrativeData) {
+                const nameLower = name.toLowerCase();
+                if (nameLower.includes('pump')) {
+                    narrativeData = paintingNarratives['pumpfun-momentum'];
+                } else if (nameLower.includes('restaking') || nameLower.includes('restak')) {
+                    narrativeData = paintingNarratives['restaking-yields'];
+                } else if (nameLower.includes('base')) {
+                    narrativeData = paintingNarratives['base-l2-adoption'];
+                } else if (nameLower.includes('ai') && nameLower.includes('agent')) {
+                    narrativeData = paintingNarratives['ai-agent-tokens'];
+                }
             }
             
             if (narrativeData) {
                 console.log('Found narrative data:', narrativeData.name);
                 explainNarrative(narrativeData);
             } else {
-                console.warn('No narrative data found for:', name, 'Available:', Object.keys(paintingNarratives));
+                console.warn('No narrative data found for ID:', narrativeId, 'Name:', name, 'Available:', Object.keys(paintingNarratives));
             }
         } else {
-            console.warn('No .narrative-name found in card');
+            console.warn('No name element found in card, card HTML:', card.innerHTML.substring(0, 200));
         }
+        return false;
     }
-});
+}, true); // Use capture phase
 if (cuadroR) {
     cuadroR.addEventListener('click', function(e) {
         e.stopPropagation();
