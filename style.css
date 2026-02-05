@@ -3651,13 +3651,17 @@ body {
     display: block;
 }
 
-/* Balance counter (right side, centered vertically) */
+/* Balance counter (right side, centered vertically) — hidden when dapp or modal is open */
+body.dapp-open .balance-counter,
+body.modal-open .balance-counter {
+    display: none;
+}
 .balance-counter {
     position: fixed;
     right: 24px;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 10011;
+    z-index: 9999;
     background: linear-gradient(180deg, #e03636, #b31919);
     border: 2px solid #7a1515;
     border-radius: 2px;

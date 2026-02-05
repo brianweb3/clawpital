@@ -204,10 +204,13 @@ function minimizeWindow(winId) {
 
     if (winId === 'project') {
         modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
     } else if (winId === 'manifest') {
         manifestModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
     } else if (winId === 'dapp') {
         tvDappOverlay.classList.remove('is-visible');
+        document.body.classList.remove('dapp-open');
         stopDAppBehavior();
     } else if (winId === 'narratives') {
         if (narrativesOverlay) narrativesOverlay.classList.remove('is-visible');
@@ -222,7 +225,7 @@ function minimizeWindow(winId) {
         if (deployDimmer) deployDimmer.classList.remove('is-active');
         if (puertaC) puertaC.classList.remove('is-door-open');
     } else if (winId === 'docs') {
-        if (docsModal) docsModal.style.display = 'none';
+        if (docsModal) { docsModal.style.display = 'none'; document.body.classList.remove('modal-open'); }
     } else if (winId === 'trade-detail') {
         const window = document.getElementById('tradeDetailWindow');
         if (window) window.style.display = 'none';
@@ -249,10 +252,13 @@ function restoreWindow(winId) {
 
     if (winId === 'project') {
         modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
     } else if (winId === 'manifest') {
         manifestModal.style.display = 'flex';
+        document.body.classList.add('modal-open');
     } else if (winId === 'dapp') {
         tvDappOverlay.classList.add('is-visible');
+        document.body.classList.add('dapp-open');
         startDAppBehavior();
     } else if (winId === 'narratives') {
         focusMode = 'painting_left';
@@ -281,7 +287,7 @@ function restoreWindow(winId) {
         if (deployOverlay) deployOverlay.classList.add('is-visible');
         transitionCamera(DOOR, 800);
     } else if (winId === 'docs') {
-        if (docsModal) docsModal.style.display = 'flex';
+        if (docsModal) { docsModal.style.display = 'flex'; document.body.classList.add('modal-open'); }
     } else if (winId === 'trade-detail') {
         const window = document.getElementById('tradeDetailWindow');
         if (window) {
@@ -314,12 +320,14 @@ function openDapp() {
     const feed = document.getElementById('dappFeed');
     if (feed) feed.innerHTML = '';
     tvDappOverlay.classList.add('is-visible');
+    document.body.classList.add('dapp-open');
     startDAppBehavior();
 }
 
 function closeDapp() {
     if (tvDappOverlay) {
         tvDappOverlay.classList.remove('is-visible');
+        document.body.classList.remove('dapp-open');
         stopDAppBehavior();
         delete minimizedWindows['dapp'];
         removeFromTaskbar('dapp');
@@ -2148,7 +2156,7 @@ function closePaintingFocus() {
 }
 
 function openPaintingLeft() {
-    if (tvDappOverlay) tvDappOverlay.classList.remove('is-visible');
+    if (tvDappOverlay) { tvDappOverlay.classList.remove('is-visible'); document.body.classList.remove('dapp-open'); }
     stopDAppBehavior();
     if (agentsOverlay) agentsOverlay.classList.remove('is-visible');
     focusMode = 'painting_left';
@@ -2162,7 +2170,7 @@ function openPaintingLeft() {
 }
 
 function openPaintingRight() {
-    if (tvDappOverlay) tvDappOverlay.classList.remove('is-visible');
+    if (tvDappOverlay) { tvDappOverlay.classList.remove('is-visible'); document.body.classList.remove('dapp-open'); }
     stopDAppBehavior();
     if (narrativesOverlay) narrativesOverlay.classList.remove('is-visible');
     focusMode = 'painting_right';
@@ -2256,7 +2264,7 @@ function stopObservationFeed() {
 }
 
 function openObservationMode() {
-    if (tvDappOverlay) tvDappOverlay.classList.remove('is-visible');
+    if (tvDappOverlay) { tvDappOverlay.classList.remove('is-visible'); document.body.classList.remove('dapp-open'); }
     stopDAppBehavior();
     closePaintingFocus();
     if (deployOverlay) deployOverlay.classList.remove('is-visible');
@@ -2297,7 +2305,7 @@ var deployAgentIdEl = document.getElementById('deployAgentId');
 var deployProfileLink = document.getElementById('deployProfileLink');
 
 function openDeployMode() {
-    if (tvDappOverlay) tvDappOverlay.classList.remove('is-visible');
+    if (tvDappOverlay) { tvDappOverlay.classList.remove('is-visible'); document.body.classList.remove('dapp-open'); }
     stopDAppBehavior();
     closePaintingFocus();
     focusMode = 'door';
@@ -2397,12 +2405,14 @@ document.querySelectorAll('.dapp-tab').forEach(function(btn) {
 
 modalClose.addEventListener('click', () => {
     modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
     delete minimizedWindows['project'];
     removeFromTaskbar('project');
 });
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
         modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
         delete minimizedWindows['project'];
         removeFromTaskbar('project');
     }
@@ -2483,12 +2493,14 @@ tablet.addEventListener('click', (e) => {
 
 manifestClose.addEventListener('click', () => {
     manifestModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
     delete minimizedWindows['manifest'];
     removeFromTaskbar('manifest');
 });
 manifestModal.addEventListener('click', (e) => {
     if (e.target === manifestModal) {
         manifestModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
         delete minimizedWindows['manifest'];
         removeFromTaskbar('manifest');
     }
@@ -2502,6 +2514,7 @@ document.addEventListener('keydown', (e) => {
         else if (tvDappOverlay && tvDappOverlay.classList.contains('is-visible')) closeDapp();
         else if (docsModal && docsModal.style.display === 'flex') {
             docsModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
             delete minimizedWindows['docs'];
             removeFromTaskbar('docs');
         }
@@ -2509,6 +2522,7 @@ document.addEventListener('keydown', (e) => {
             modal.style.display = 'none';
             manifestModal.style.display = 'none';
             if (docsModal) docsModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
             delete minimizedWindows['project'];
             delete minimizedWindows['manifest'];
             delete minimizedWindows['docs'];
@@ -2545,13 +2559,14 @@ var docsModal = document.getElementById('docsModal');
 var docsCloseBtn = document.getElementById('docsClose');
 if (docsCloseBtn) docsCloseBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    if (docsModal) docsModal.style.display = 'none';
+    if (docsModal) { docsModal.style.display = 'none'; document.body.classList.remove('modal-open'); }
     delete minimizedWindows['docs'];
     removeFromTaskbar('docs');
 });
 if (docsModal) docsModal.addEventListener('click', function(e) {
     if (e.target === docsModal) {
         docsModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
         delete minimizedWindows['docs'];
         removeFromTaskbar('docs');
     }

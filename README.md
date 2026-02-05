@@ -70,8 +70,6 @@ The last **50 trades** and summary info are stored in **Vercel Blob**. After dep
 
 This project is licensed under the MIT License.
 
----
-
-<div align="center">
+---<div align="center">
   Made with ❤️ by the CLAWPITAL team
 </div>
