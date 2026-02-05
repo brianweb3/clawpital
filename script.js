@@ -2272,8 +2272,75 @@ if (cuadroL) {
     });
 }
 
+function formatAIText(text) {
+    if (!text) return '';
+    
+    // Split into lines for processing
+    let lines = text.split('\n');
+    let formatted = '';
+    let inList = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        let originalLine = line;
+        
+        if (!line) {
+            if (inList) {
+                formatted += '</ul>';
+                inList = false;
+            }
+            continue;
+        }
+        
+        // Headers (numbered sections or uppercase headers)
+        if (/^\d+\.\s*[А-ЯЁА-Я]/.test(line) || /^[А-ЯЁА-Я][А-ЯЁА-Я\s]+:?\s*$/.test(line) || /^[А-ЯЁА-Я\s]+:$/.test(line)) {
+            if (inList) {
+                formatted += '</ul>';
+                inList = false;
+            }
+            formatted += '<h4 class="narrative-ai-heading">' + line + '</h4>';
+        }
+        // List items (bullet points or numbered)
+        else if (/^[-•]\s+/.test(line) || /^\d+[\)\.]\s+/.test(line) || /^-\s+/.test(line)) {
+            if (!inList) {
+                formatted += '<ul class="narrative-ai-list">';
+                inList = true;
+            }
+            line = line.replace(/^[-•]\s+/, '').replace(/^\d+[\)\.]\s+/, '').replace(/^-\s+/, '');
+            // Highlight numbers in list items
+            line = line
+                .replace(/\$([\d,]+[BMK]?)/g, '<strong class="narrative-ai-number">$$$1</strong>')
+                .replace(/([\d,]+\.?\d*%)/g, '<strong class="narrative-ai-number">$1</strong>')
+                .replace(/([\d,]+\.?\d*\s*(x|X|раз|→|→))/g, '<strong class="narrative-ai-number">$1</strong>')
+                .replace(/(\+[\d,]+\.?\d*%)/g, '<strong class="narrative-ai-number">$1</strong>');
+            formatted += '<li>' + line + '</li>';
+        }
+        // Regular paragraph
+        else {
+            if (inList) {
+                formatted += '</ul>';
+                inList = false;
+            }
+            // Highlight numbers, percentages, dollar amounts, arrows
+            line = line
+                .replace(/\$([\d,]+[BMK]?)/g, '<strong class="narrative-ai-number">$$$1</strong>')
+                .replace(/([\d,]+\.?\d*%)/g, '<strong class="narrative-ai-number">$1</strong>')
+                .replace(/([\d,]+\.?\d*\s*(x|X|раз|→|→))/g, '<strong class="narrative-ai-number">$1</strong>')
+                .replace(/(\+[\d,]+\.?\d*%)/g, '<strong class="narrative-ai-number">$1</strong>')
+                .replace(/(→|→)/g, '<strong class="narrative-ai-number">→</strong>');
+            formatted += '<p>' + line + '</p>';
+        }
+    }
+    
+    if (inList) {
+        formatted += '</ul>';
+    }
+    
+    return formatted;
+}
+
 function typeAIExplanation(text, element, speed) {
-    speed = speed || 20;
+    speed = speed || 15;
     let index = 0;
     element.innerHTML = '';
     let currentText = '';
@@ -2281,11 +2348,13 @@ function typeAIExplanation(text, element, speed) {
     function type() {
         if (index < text.length) {
             currentText += text[index];
-            element.innerHTML = '<div class="narrative-ai-typing">' + currentText + '<span class="narrative-ai-cursor">|</span></div>';
+            const formatted = formatAIText(currentText);
+            element.innerHTML = '<div class="narrative-ai-typing">' + formatted + '<span class="narrative-ai-cursor">|</span></div>';
             index++;
             setTimeout(type, speed);
         } else {
-            element.innerHTML = '<div class="narrative-ai-typing">' + currentText + '</div>';
+            const formatted = formatAIText(currentText);
+            element.innerHTML = '<div class="narrative-ai-typing">' + formatted + '</div>';
         }
     }
     type();
@@ -2314,23 +2383,38 @@ function explainNarrative(narrativeData) {
     });
     
     // Clear content and show loading
-    aiContent.innerHTML = '<div class="narrative-ai-typing">Analyzing narrative: ' + narrativeData.name + '...<span class="narrative-ai-cursor">|</span></div>';
+    aiContent.innerHTML = '<div class="narrative-ai-typing">Анализирую нарратив: ' + narrativeData.name + '...<span class="narrative-ai-cursor">|</span></div>';
     console.log('Loading message displayed, calling API...');
     
     // Use server-side proxy to avoid CORS issues
-    const prompt = 'Analyze this crypto narrative in detail:\n\n' +
-        'Name: ' + narrativeData.name + '\n' +
+    const prompt = 'Ты - эксперт по аналитике крипторынка. Проанализируй этот нарратив детально:\n\n' +
+        'Название: ' + narrativeData.name + '\n' +
         'Heat Score: ' + narrativeData.heat + '/100\n' +
-        'Status: ' + narrativeData.status + '\n' +
-        '24h Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n' +
-        'Summary: ' + narrativeData.summary + '\n\n' +
-        'Provide a detailed analysis including:\n' +
-        '1. Why this narrative is important\n' +
-        '2. Key factors driving it\n' +
-        '3. Risk assessment\n' +
-        '4. Trading/investment implications\n' +
-        '5. What to watch for\n\n' +
-        'Write in a clear, professional style as if you are a crypto trading AI agent explaining to your owner.';
+        'Статус: ' + narrativeData.status + '\n' +
+        'Изменение за 24ч: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n' +
+        'Краткое описание: ' + narrativeData.summary + '\n\n' +
+        'Напиши детальный анализ на русском языке, который включает:\n\n' +
+        '1. ПОЧЕМУ ЭТОТ НАРРАТИВ АКТУАЛЕН:\n' +
+        '   - Текущая ситуация на рынке\n' +
+        '   - Что делает его важным сейчас\n' +
+        '   - Связь с макротрендами\n\n' +
+        '2. ПОЧЕМУ СТОИТ ВЛОЖИТЬСЯ:\n' +
+        '   - Конкретные цифры и метрики (TVL, объемы, рост, проценты)\n' +
+        '   - Примеры успешных проектов/токенов в этом нарративе\n' +
+        '   - Кейсы инвесторов/проектов\n' +
+        '   - Потенциал роста с конкретными цифрами\n\n' +
+        '3. ДАННЫЕ И МЕТРИКИ:\n' +
+        '   - Приведи конкретные цифры (TVL в $, объемы торговли, количество проектов, рост в %)\n' +
+        '   - Создай простую текстовую диаграмму роста (например: "TVL: $2B → $8B (+300%)")\n' +
+        '   - Покажи динамику за последние периоды\n\n' +
+        '4. ПРИМЕРЫ И КЕЙСЫ:\n' +
+        '   - Конкретные проекты/токены в этом нарративе\n' +
+        '   - Примеры успешных инвестиций\n' +
+        '   - Реальные кейсы с цифрами\n\n' +
+        '5. РИСКИ И ЧТО СЛЕДИТЬ:\n' +
+        '   - Основные риски\n' +
+        '   - Ключевые метрики для мониторинга\n\n' +
+        'Используй форматирование с заголовками, списками, выделением важных цифр. Пиши как профессиональный криптоаналитик, объясняющий своему клиенту инвестиционную возможность.';
     
     const base = getApiBase();
     if (base) {
@@ -2350,12 +2434,12 @@ function explainNarrative(narrativeData) {
         }).then(function(data) {
             const aiText = data.text || '';
             if (aiText) {
-                const fullExplanation = 'Narrative: ' + narrativeData.name + '\n' +
-                    'Heat: ' + narrativeData.heat + '/100 | Status: ' + narrativeData.status.toUpperCase() + 
-                    ' | Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
+                const fullExplanation = 'НАРРАТИВ: ' + narrativeData.name + '\n' +
+                    'Heat: ' + narrativeData.heat + '/100 | Статус: ' + narrativeData.status.toUpperCase() + 
+                    ' | Изменение: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
                     aiText;
                 aiContent.innerHTML = '';
-                typeAIExplanation(fullExplanation, aiContent, 15);
+                typeAIExplanation(fullExplanation, aiContent, 12);
             } else {
                 console.warn('Claude API returned empty text');
                 fallbackExplanation(narrativeData, aiContent, 'Claude API returned empty response');
@@ -2371,25 +2455,24 @@ function explainNarrative(narrativeData) {
 }
 
 function fallbackExplanation(narrativeData, aiContent, errorMsg) {
-    const explanation = 'Analyzing narrative: ' + narrativeData.name + '\n\n' +
-        'Heat Score: ' + narrativeData.heat + '/100\n' +
-        'Status: ' + narrativeData.status.toUpperCase() + '\n' +
-        '24h Change: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
-        'Model Assessment:\n' +
+    const explanation = 'НАРРАТИВ: ' + narrativeData.name + '\n' +
+        'Heat: ' + narrativeData.heat + '/100 | Статус: ' + narrativeData.status.toUpperCase() + 
+        ' | Изменение: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
+        '1. ПОЧЕМУ ЭТОТ НАРРАТИВ АКТУАЛЕН:\n' +
         narrativeData.reasoning + '\n\n' +
-        'Key Factors:\n' +
-        narrativeData.factors + '\n\n' +
-        'Detailed Analysis:\n' +
+        '2. ПОЧЕМУ СТОИТ ВЛОЖИТЬСЯ:\n' +
+        '- ' + narrativeData.factors + '\n\n' +
+        '3. ДЕТАЛЬНЫЙ АНАЛИЗ:\n' +
         narrativeData.fullAnalysis;
     
     if (errorMsg) {
-        explanation += '\n\n[Note: ' + errorMsg + '. Check Vercel environment variables for CLAUDE_API_KEY]';
+        explanation += '\n\n[Примечание: ' + errorMsg + '. Проверьте переменные окружения Vercel для CLAUDE_API_KEY]';
     } else {
-        explanation += '\n\n[Note: Using fallback explanation. Set CLAUDE_API_KEY in Vercel environment variables for AI-generated explanations]';
+        explanation += '\n\n[Примечание: Используется резервное объяснение. Установите CLAUDE_API_KEY в переменных окружения Vercel для AI-генерируемых объяснений]';
     }
     
     aiContent.innerHTML = '';
-    typeAIExplanation(explanation, aiContent, 15);
+    typeAIExplanation(explanation, aiContent, 12);
 }
 
 // Add click handlers for narrative cards in painting left
@@ -2443,24 +2526,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Also attach when narratives overlay opens - use event delegation
 document.addEventListener('click', function(e) {
-    if (e.target.closest('.narrative-card')) {
-        const card = e.target.closest('.narrative-card');
+    const card = e.target.closest('.narrative-card');
+    if (card) {
+        e.stopPropagation();
+        console.log('Narrative card clicked');
         const nameEl = card.querySelector('.narrative-name');
         if (nameEl) {
             const name = nameEl.textContent.trim();
+            console.log('Narrative name:', name);
             let narrativeData = null;
-            if (name.includes('Pump.fun') || name.includes('pumpfun')) {
+            if (name.includes('Pump.fun') || name.toLowerCase().includes('pump')) {
                 narrativeData = paintingNarratives['pumpfun-momentum'];
-            } else if (name.includes('Restaking') || name.includes('restaking')) {
+            } else if (name.includes('Restaking') || name.toLowerCase().includes('restaking')) {
                 narrativeData = paintingNarratives['restaking-yields'];
-            } else if (name.includes('Base') || name.includes('base')) {
+            } else if (name.includes('Base') || name.toLowerCase().includes('base')) {
                 narrativeData = paintingNarratives['base-l2-adoption'];
-            } else if (name.includes('AI agent') || name.includes('ai-agent')) {
+            } else if (name.includes('AI agent') || name.toLowerCase().includes('ai')) {
                 narrativeData = paintingNarratives['ai-agent-tokens'];
             }
             if (narrativeData) {
-                e.stopPropagation();
+                console.log('Found narrative data, calling explainNarrative');
                 explainNarrative(narrativeData);
+            } else {
+                console.warn('No narrative data found for:', name);
             }
         }
     }

@@ -3973,6 +3973,41 @@ body.modal-open .balance-counter {
     line-height: 1.6;
     color: #1f2937;
 }
+.narrative-ai-content h4.narrative-ai-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 16px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.narrative-ai-content p {
+    margin: 8px 0;
+}
+.narrative-ai-content ul.narrative-ai-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 8px 0;
+}
+.narrative-ai-content ul.narrative-ai-list li {
+    padding: 4px 0 4px 16px;
+    position: relative;
+    margin: 4px 0;
+}
+.narrative-ai-content ul.narrative-ai-list li:before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #5189fb;
+    font-weight: bold;
+}
+.narrative-ai-content strong.narrative-ai-number {
+    color: #059669;
+    font-weight: 700;
+    background: rgba(5, 150, 105, 0.1);
+    padding: 2px 4px;
+    border-radius: 2px;
+}
 .narrative-ai-placeholder {
     color: #9ca3af;
     font-style: italic;
