@@ -3658,13 +3658,13 @@ body.modal-open .balance-counter {
 }
 .balance-counter {
     position: fixed;
-    right: 24px;
+    right: 50px;
     top: 40%;
     transform: translateY(-50%);
     z-index: 9999;
     background: linear-gradient(180deg, #e03636, #b31919);
     border: 2px solid #7a1515;
-    border-radius: 2px;
+    border-radius: 12px;
     padding: 20px 32px;
     box-shadow: inset 1px 1px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(0,0,0,0.3), 2px 2px 4px rgba(0,0,0,0.1);
     min-width: 280px;
