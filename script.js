@@ -629,7 +629,7 @@ function fillDappWallet() {
     var el = document.getElementById('dappWalletCard');
     if (!el) return;
     // Always update with current balance
-    var balance = currentBalance || totalCapital || 1000;
+    var balance = (currentBalance !== null && currentBalance !== undefined) ? currentBalance : (totalCapital || 1000);
     el.innerHTML = '<h3>Agent wallet</h3><div class="dapp-wallet-address">0x7f3c...a9e2</div><div class="dapp-wallet-balance">' + formatBalance(balance) + ' <span class="usd">USD</span></div>';
 }
 
@@ -764,9 +764,7 @@ function loadBalanceFromServer() {
             if (typeof data.initialBalance === 'number' && data.initialBalance > 0) {
                 initialBalance = data.initialBalance;
             }
-            if (balanceValueEl) balanceValueEl.textContent = formatBalance(currentBalance);
-            updateMetrics();
-            updateWalletBalance();
+            // Don't update display here - will be done in initializeBalance
             return true;
         }
         return false;
@@ -2178,7 +2176,9 @@ function closePaintingFocus() {
     delete minimizedWindows['agents'];
     removeFromTaskbar('narratives');
     removeFromTaskbar('agents');
-    transitionCamera(DEFAULT, 1200);
+    // Return to current camera mode, not always DEFAULT
+    const target = currentCameraMode === 'default' ? DEFAULT : CUSTOM;
+    transitionCamera(target, 1200);
 }
 
 function openPaintingLeft() {
@@ -2561,7 +2561,9 @@ function closeObservationMode() {
     stopObservationFeed();
     delete minimizedWindows['observation'];
     removeFromTaskbar('observation');
-    transitionCamera(DEFAULT, 1200);
+    // Return to current camera mode, not always DEFAULT
+    const target = currentCameraMode === 'default' ? DEFAULT : CUSTOM;
+    transitionCamera(target, 1200);
 }
 
 var deployOverlay = document.getElementById('deployOverlay');
@@ -2608,7 +2610,9 @@ function closeDeployMode() {
     if (puertaC) puertaC.classList.remove('is-door-open');
     delete minimizedWindows['deploy'];
     removeFromTaskbar('deploy');
-    transitionCamera(DEFAULT, 1200);
+    // Return to current camera mode, not always DEFAULT
+    const target = currentCameraMode === 'default' ? DEFAULT : CUSTOM;
+    transitionCamera(target, 1200);
 }
 
 if (observationStandUp) observationStandUp.addEventListener('click', function(e) { e.stopPropagation(); closeObservationMode(); });
@@ -2870,8 +2874,8 @@ if (libros) {
 var balanceValueEl = document.getElementById('balanceValue');
 var roiValueEl = document.getElementById('roiValue');
 var pnlValueEl = document.getElementById('pnlValue');
-var currentBalance = 1000; // Will be synced with totalCapital from capitalAllocation
-var initialBalance = 1000; // Starting balance for ROI/PNL calculation
+var currentBalance = null; // Will be loaded from server or synced with totalCapital
+var initialBalance = null; // Will be loaded from server or set from capitalAllocation
 
 function formatBalance(value) {
     return '$' + value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -2943,7 +2947,7 @@ function updateWalletBalance() {
     // Update wallet display if wallet tab is visible
     var walletCard = document.getElementById('dappWalletCard');
     if (walletCard) {
-        var balance = currentBalance || totalCapital || 1000;
+        var balance = (currentBalance !== null && currentBalance !== undefined) ? currentBalance : (totalCapital || 1000);
         var balanceEl = walletCard.querySelector('.dapp-wallet-balance');
         if (balanceEl) {
             balanceEl.innerHTML = formatBalance(balance) + ' <span class="usd">USD</span>';
@@ -2956,6 +2960,11 @@ function updateWalletBalance() {
 
 // Initialize when DOM is ready
 function initializeBalance() {
+    // Hide balance counter until loaded
+    if (balanceValueEl) {
+        balanceValueEl.style.opacity = '0';
+    }
+    
     // Try to load balance from server first
     loadBalanceFromServer().then(function(loaded) {
         if (!loaded) {
@@ -2967,6 +2976,7 @@ function initializeBalance() {
         
         if (balanceValueEl) {
             balanceValueEl.textContent = formatBalance(currentBalance);
+            balanceValueEl.style.opacity = '1';
             updateMetrics(); // Initial update
             setInterval(updateBalance, 1000);
         }

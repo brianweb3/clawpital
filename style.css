@@ -3669,6 +3669,10 @@ body.modal-open .balance-counter {
     box-shadow: inset 1px 1px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(0,0,0,0.3), 2px 2px 4px rgba(0,0,0,0.1);
     min-width: 280px;
     text-align: center;
+    transition: opacity 0.3s ease;
+}
+.balance-value {
+    transition: opacity 0.3s ease;
 }
 .balance-label {
     font-family: 'JetBrains Mono', Consolas, monospace;
