@@ -20,6 +20,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Claude API key not configured. Please add CLAUDE_API_KEY to Vercel environment variables.' });
     }
 
+    console.log('Calling Claude API with prompt length:', prompt.length);
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -29,18 +30,22 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
+        max_tokens: 4000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
+    console.log('Claude API response status:', response.status);
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Claude API error:', response.status, errorText);
       return res.status(response.status).json({ error: errorText });
     }
 
     const data = await response.json();
+    console.log('Claude API response data keys:', Object.keys(data));
     const aiText = data.content?.[0]?.text || '';
+    console.log('AI text length:', aiText.length);
     return res.status(200).json({ text: aiText });
   } catch (err) {
     console.error('Claude API proxy error:', err);

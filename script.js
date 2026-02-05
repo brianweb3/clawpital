@@ -2417,12 +2417,16 @@ function explainNarrative(narrativeData) {
         'Используй форматирование с заголовками, списками, выделением важных цифр. Пиши как профессиональный криптоаналитик, объясняющий своему клиенту инвестиционную возможность.';
     
     const base = getApiBase();
+    console.log('API base URL:', base);
     if (base) {
+        console.log('Calling Claude API:', base + '/api/claude');
+        console.log('Prompt length:', prompt.length);
         fetch(base + '/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: prompt })
-        }).then(function(r) { 
+        }).then(function(r) {
+            console.log('API response status:', r.status, r.statusText); 
             if (!r.ok) {
                 return r.json().then(function(errData) {
                     throw new Error(errData.error || 'API error: ' + r.status);
@@ -2432,8 +2436,10 @@ function explainNarrative(narrativeData) {
             }
             return r.json(); 
         }).then(function(data) {
+            console.log('Claude API response received:', data);
             const aiText = data.text || '';
             if (aiText) {
+                console.log('AI text length:', aiText.length);
                 const fullExplanation = 'НАРРАТИВ: ' + narrativeData.name + '\n' +
                     'Heat: ' + narrativeData.heat + '/100 | Статус: ' + narrativeData.status.toUpperCase() + 
                     ' | Изменение: ' + (narrativeData.change >= 0 ? '+' : '') + narrativeData.change + '%\n\n' +
@@ -2441,11 +2447,12 @@ function explainNarrative(narrativeData) {
                 aiContent.innerHTML = '';
                 typeAIExplanation(fullExplanation, aiContent, 12);
             } else {
-                console.warn('Claude API returned empty text');
+                console.warn('Claude API returned empty text, data:', data);
                 fallbackExplanation(narrativeData, aiContent, 'Claude API returned empty response');
             }
         }).catch(function(err) {
             console.error('Claude API error:', err);
+            console.error('Error details:', err.message, err.stack);
             fallbackExplanation(narrativeData, aiContent, 'Error: ' + (err.message || 'Failed to fetch AI explanation'));
         });
     } else {
@@ -2524,32 +2531,50 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(attachNarrativeHandlers, 500);
 });
 
-// Also attach when narratives overlay opens - use event delegation
+// Event delegation for narrative cards - works even if cards are added dynamically
 document.addEventListener('click', function(e) {
-    const card = e.target.closest('.narrative-card');
+    // Check if clicked element or its parent is a narrative card
+    let card = e.target.closest('.narrative-card');
+    if (!card) {
+        // Also check if clicked on child elements
+        if (e.target.closest('.narrative-card-header') || 
+            e.target.closest('.narrative-name') || 
+            e.target.closest('.narrative-desc') ||
+            e.target.closest('.narrative-meta')) {
+            card = e.target.closest('.narrative-card');
+        }
+    }
+    
     if (card) {
         e.stopPropagation();
-        console.log('Narrative card clicked');
+        e.preventDefault();
+        console.log('Narrative card clicked, card:', card);
         const nameEl = card.querySelector('.narrative-name');
         if (nameEl) {
             const name = nameEl.textContent.trim();
             console.log('Narrative name:', name);
             let narrativeData = null;
-            if (name.includes('Pump.fun') || name.toLowerCase().includes('pump')) {
+            
+            // More flexible matching
+            const nameLower = name.toLowerCase();
+            if (nameLower.includes('pump') || nameLower.includes('pump.fun')) {
                 narrativeData = paintingNarratives['pumpfun-momentum'];
-            } else if (name.includes('Restaking') || name.toLowerCase().includes('restaking')) {
+            } else if (nameLower.includes('restaking') || nameLower.includes('restak')) {
                 narrativeData = paintingNarratives['restaking-yields'];
-            } else if (name.includes('Base') || name.toLowerCase().includes('base')) {
+            } else if (nameLower.includes('base') && nameLower.includes('l2')) {
                 narrativeData = paintingNarratives['base-l2-adoption'];
-            } else if (name.includes('AI agent') || name.toLowerCase().includes('ai')) {
+            } else if (nameLower.includes('ai agent') || (nameLower.includes('ai') && nameLower.includes('agent'))) {
                 narrativeData = paintingNarratives['ai-agent-tokens'];
             }
+            
             if (narrativeData) {
-                console.log('Found narrative data, calling explainNarrative');
+                console.log('Found narrative data:', narrativeData.name);
                 explainNarrative(narrativeData);
             } else {
-                console.warn('No narrative data found for:', name);
+                console.warn('No narrative data found for:', name, 'Available:', Object.keys(paintingNarratives));
             }
+        } else {
+            console.warn('No .narrative-name found in card');
         }
     }
 });
