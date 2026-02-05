@@ -2183,6 +2183,58 @@ function openPaintingRight() {
     }, 1200);
 }
 
+// Narrative data for painting left narratives
+const paintingNarratives = {
+    'pumpfun-momentum': {
+        id: 'pumpfun-momentum',
+        name: 'Pump.fun momentum',
+        heat: 72,
+        change: 15.3,
+        status: 'watching',
+        summary: 'Meme coins trending on pump.fun, volume spike',
+        fullAnalysis: 'The Pump.fun momentum narrative has gained significant traction as meme coin launches on the platform continue to attract retail attention. Key observations:\n\n1. Volume surge: Daily trading volume on Pump.fun has increased 250% in the past week, indicating strong retail participation.\n2. Viral mechanics: The platform\'s bonding curve model creates natural price discovery and early adopter incentives.\n3. Social amplification: X/Twitter mentions of Pump.fun launches have increased 400% month-over-month.\n4. Smart money tracking: On-chain analysis shows increasing whale participation in early-stage launches.\n\nRisk factors: High volatility, potential rug pulls, and regulatory uncertainty around meme coins. The model is monitoring this narrative but maintaining conservative position sizing.',
+        factors: 'Volume increase (250%), social sentiment spike (400%), whale accumulation, platform growth metrics',
+        reasoning: 'The model identified Pump.fun as an emerging narrative with strong momentum indicators. While the risk/reward profile is attractive for early entries, the high volatility and potential for sudden reversals require careful position management. The agent is currently watching and may allocate small positions if momentum continues.',
+        sources: ['X', 'Telegram', 'Onchain']
+    },
+    'restaking-yields': {
+        id: 'restaking-yields',
+        name: 'Restaking yields',
+        heat: 88,
+        change: 22.7,
+        status: 'active',
+        summary: 'EigenLayer AVS and LRT allocation shifts',
+        fullAnalysis: 'The restaking narrative represents one of the highest-conviction opportunities in the current market cycle. EigenLayer\'s AVS (Actively Validated Services) ecosystem is rapidly expanding:\n\n1. TVL growth: Total Value Locked in restaking protocols has grown from $2B to $8B in Q1 2024, representing 300% growth.\n2. Yield opportunities: Combined staking rewards and AVS rewards offer 8-15% APY, significantly higher than traditional staking.\n3. Protocol maturity: Major protocols like Ether.fi, Renzo, and Kelp DAO have proven track records and strong security.\n4. Institutional interest: Large validators and institutions are increasingly allocating to restaking strategies.\n\nCurrent allocation: The agent has actively positioned in LRT tokens (eETH, ezETH, rsETH) and is monitoring AVS launches for additional yield opportunities. Risk management includes diversification across multiple protocols and monitoring slashing risks.',
+        factors: 'TVL growth (300%), yield opportunities (8-15% APY), protocol maturity, institutional adoption',
+        reasoning: 'Restaking represents a structural shift in Ethereum staking economics. The combination of base staking rewards and additional AVS rewards creates an attractive risk-adjusted return profile. The model has identified this as a high-conviction narrative and has actively allocated capital.',
+        sources: ['X', 'Telegram', 'Onchain']
+    },
+    'base-l2-adoption': {
+        id: 'base-l2-adoption',
+        name: 'Base L2 adoption',
+        heat: 45,
+        change: 8.2,
+        status: 'observing',
+        summary: 'Base chain fees and DEX volume narrative',
+        fullAnalysis: 'Base L2 has shown remarkable growth since launch, becoming the second-largest L2 by TVL. Key developments:\n\n1. Transaction growth: 150% increase in daily transactions over the past quarter, driven by low fees and Coinbase integration.\n2. Developer migration: Over 200 new dApps deployed on Base, including major DeFi protocols and social applications.\n3. Cost efficiency: Base transactions are 10x cheaper than mainnet, enabling new use cases like micro-transactions.\n4. Ecosystem expansion: Major protocols like Uniswap, Aave, and Compound have launched on Base.\n\nModel assessment: Strong fundamentals with sustainable growth trajectory. The Coinbase backing provides additional credibility and potential for institutional adoption. The agent is observing this narrative and may increase allocation if adoption metrics continue to improve.',
+        factors: 'Transaction growth (150%), dApp deployment (200+), cost efficiency (10x cheaper), Coinbase backing',
+        reasoning: 'Base represents a compelling L2 narrative with strong fundamentals and institutional backing. While adoption is growing, the model is taking a measured approach, observing key metrics before increasing allocation. The low fees and growing ecosystem make it attractive for long-term positioning.',
+        sources: ['X', 'Onchain']
+    },
+    'ai-agent-tokens': {
+        id: 'ai-agent-tokens',
+        name: 'AI agent tokens',
+        heat: 62,
+        change: -12.4,
+        status: 'exited',
+        summary: 'Tokenized AI agents and inference demand',
+        fullAnalysis: 'The AI agent token narrative saw initial excitement but has cooled as the market matured:\n\n1. Initial momentum: Early tokens like FET, AGIX, and OCEAN saw significant price appreciation driven by AI hype.\n2. Reality check: Many projects failed to deliver on promises, leading to price corrections and reduced sentiment.\n3. Market consolidation: The narrative has shifted from pure speculation to projects with actual AI infrastructure and demand.\n4. Current state: While some projects continue to show promise, overall narrative heat has decreased.\n\nModel decision: The agent exited positions in AI agent tokens after identifying declining momentum and increased risk. While the long-term potential remains, current market conditions suggest better opportunities elsewhere.',
+        factors: 'Declining momentum, failed project deliveries, market consolidation, reduced sentiment',
+        reasoning: 'The model identified declining narrative heat and increased risk in AI agent tokens. While the long-term potential of AI in crypto remains, current market conditions and project execution issues led to the decision to exit positions and reallocate capital to higher-conviction narratives.',
+        sources: ['X', 'Telegram']
+    }
+};
+
 if (cuadroL) {
     cuadroL.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -2191,6 +2243,41 @@ if (cuadroL) {
         openPaintingLeft();
     });
 }
+
+// Add click handlers for narrative cards in painting left
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const narrativesList = document.getElementById('narrativesList');
+        if (narrativesList) {
+            const cards = narrativesList.querySelectorAll('.narrative-card');
+            cards.forEach(function(card) {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const heat = parseInt(card.getAttribute('data-heat')) || 0;
+                    const nameEl = card.querySelector('.narrative-name');
+                    const name = nameEl ? nameEl.textContent.trim() : '';
+                    
+                    // Find matching narrative data
+                    let narrativeData = null;
+                    if (name.includes('Pump.fun')) {
+                        narrativeData = paintingNarratives['pumpfun-momentum'];
+                    } else if (name.includes('Restaking')) {
+                        narrativeData = paintingNarratives['restaking-yields'];
+                    } else if (name.includes('Base')) {
+                        narrativeData = paintingNarratives['base-l2-adoption'];
+                    } else if (name.includes('AI agent')) {
+                        narrativeData = paintingNarratives['ai-agent-tokens'];
+                    }
+                    
+                    if (narrativeData) {
+                        showNarrativeDetails(narrativeData);
+                    }
+                });
+            });
+        }
+    }, 500);
+});
 if (cuadroR) {
     cuadroR.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -2446,13 +2533,21 @@ function typeText(text, element, speed) {
     let isNewLine = true;
     const statusEl = document.querySelector('.pixel-status');
     const contentContainer = element.parentElement;
+    let rafId = null;
+    let lastUpdate = 0;
+    const UPDATE_THROTTLE = 16; // ~60fps
+    
     function scrollToBottom() {
         if (contentContainer) contentContainer.scrollTop = contentContainer.scrollHeight;
     }
     function updateDisplay() {
+        const now = performance.now();
+        if (now - lastUpdate < UPDATE_THROTTLE) return;
+        lastUpdate = now;
+        
         let html = lines.map(function(l) { return l + '<br>'; }).join('') + currentLine + '<span class="typing-cursor">|</span>';
         element.innerHTML = html;
-        setTimeout(scrollToBottom, 0);
+        requestAnimationFrame(scrollToBottom);
     }
     function type() {
         if (index < text.length) {
@@ -2474,7 +2569,7 @@ function typeText(text, element, speed) {
         } else {
             if (currentLine) lines.push(currentLine);
             element.innerHTML = lines.map(function(l) { return l + '<br>'; }).join('');
-            setTimeout(scrollToBottom, 0);
+            requestAnimationFrame(scrollToBottom);
             if (statusEl) statusEl.textContent = 'MANIFEST LOADED';
         }
     }
@@ -2543,7 +2638,10 @@ if (skipBtn) {
     });
 }
 const githubBtn = document.querySelector('.pixel-btn-github');
-if (githubBtn) githubBtn.addEventListener('click', (e) => { e.stopPropagation(); });
+if (githubBtn) githubBtn.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    window.open('https://github.com/brianweb3/clawpital', '_blank', 'noopener,noreferrer');
+});
 
 const sofa = document.querySelector('.sillon-c');
 if (sofa) {

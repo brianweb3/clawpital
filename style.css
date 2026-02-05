@@ -3950,6 +3950,8 @@ body.modal-open .balance-counter {
 }
 
 .narrative-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     padding: 0.65rem 0.85rem;
     background: #fff;
     border: 2px solid #d0d0d0;
@@ -3966,6 +3968,7 @@ body.modal-open .balance-counter {
     background: #fafafa;
     border-color: #c0c0c0;
     box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 rgba(0,0,0,0.06);
+    transform: translateY(-1px);
 }
 @keyframes narrativeCardIn {
     from {
